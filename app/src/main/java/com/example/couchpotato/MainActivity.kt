@@ -3,31 +3,25 @@ package com.example.couchpotato
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.couchpotato.ui.theme.CouchPotatoTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
+import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.*
+import androidx.compose.material3.Text
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.res.painterResource
-
+import androidx.compose.ui.text.style.TextAlign
+import com.example.couchpotato.ui.theme.CouchPotatoTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,24 +34,70 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppScreen() {
-    var selectedTab by remember { mutableStateOf("Movies") } // Состояние для текущего раздела
+    var selectedTab by remember { mutableStateOf("Movies") }
+    var selectedBottomTab by remember { mutableStateOf(0) } // Состояние для нижней навигационной панели
 
-    Column(
+    Scaffold(
+        modifier = Modifier.fillMaxSize(), // Убедитесь, что Scaffold занимает весь экран
+        bottomBar = {
+            BottomNavigationBar(
+                selectedIndex = selectedBottomTab,
+                onItemSelected = { selectedBottomTab = it }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF0A3DA6))
+                .padding(paddingValues)
+        ) {
+            TabSelector(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it }
+            )
+
+            when (selectedTab) {
+                "Movies" -> MovieScreen(
+                    movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic")
+                )
+                "Shows" -> ShowScreen(
+                    shows = listOf("Breaking Bad", "Game of Thrones", "Stranger Things", "The Crown", "The Office")
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
+    BottomNavigation(
         modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0A3DA6))
+            .fillMaxWidth()
+            .height(56.dp) // Устанавливаем фиксированную высоту для панели
+            .background(Color.White), // Белый фон для панели
+        backgroundColor = Color.White
     ) {
-        TabSelector(
-            selectedTab = selectedTab,
-            onTabSelected = { selectedTab = it }
+        val items = listOf(
+            "Home" to R.drawable.home_notactive,
+            "Search" to R.drawable.search_notactive,
+            "Favorites" to R.drawable.favorites_notactive,
+            "Profile" to R.drawable.profile_notactive
         )
 
-        when (selectedTab) {
-            "Movies" -> MovieScreen(
-                movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic")
-            )
-            "Shows" -> ShowScreen(
-                shows = listOf("Breaking Bad", "Game of Thrones", "Stranger Things", "The Crown", "The Office")
+        items.forEachIndexed { index, item ->
+            BottomNavigationItem(
+                icon = {
+                    Icon(
+                        painter = painterResource(id = item.second),
+                        contentDescription = item.first
+                    )
+                },
+                label = { BasicText(item.first) },
+                selected = selectedIndex == index,
+                onClick = { onItemSelected(index) },
+                selectedContentColor = Color.Black, // Черный цвет для выбранной иконки
+                unselectedContentColor = Color.Gray // Серый цвет для невыбранной иконки
             )
         }
     }
@@ -89,8 +129,6 @@ fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
         }
     }
 }
-
-
 
 @Composable
 fun MovieScreen(movies: List<String>) {
