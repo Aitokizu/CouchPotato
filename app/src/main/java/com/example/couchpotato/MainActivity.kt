@@ -21,6 +21,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -33,40 +36,122 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun AppScreen() {
+    val navController = rememberNavController()
     var selectedTab by remember { mutableStateOf("Movies") }
-    var selectedBottomTab by remember { mutableStateOf(0) } // Состояние для нижней навигационной панели
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(), // Убедитесь, что Scaffold занимает весь экран
+        modifier = Modifier.fillMaxSize(),
         bottomBar = {
             BottomNavigationBar(
-                selectedIndex = selectedBottomTab,
-                onItemSelected = { selectedBottomTab = it }
+                selectedIndex = when (navController.currentBackStackEntry?.destination?.route) {
+                    "home" -> 0
+                    "search" -> 1
+                    "favorites" -> 2
+                    "profile" -> 3
+                    else -> 0
+                },
+                onItemSelected = { index ->
+                    when (index) {
+                        0 -> navController.navigate("home")
+                        1 -> navController.navigate("search")
+                        2 -> navController.navigate("favorites")
+                        3 -> navController.navigate("profile")
+                    }
+                }
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color(0xFF0A3DA6))
-                .padding(paddingValues)
+        NavHost(
+            navController = navController,
+            startDestination = "home",
+            modifier = Modifier.padding(paddingValues)
         ) {
-            TabSelector(
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTab = it }
-            )
-
-            when (selectedTab) {
-                "Movies" -> MovieScreen(
-                    movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic"),
-                    inProgressMovies = listOf("Inception", "Avatar"),
-                    notStartedMovies = listOf("Interstellar", "The Dark Knight", "Titanic")
-                )
-                "Shows" -> ShowScreen(
-                    shows = listOf("Breaking Bad", "Game of Thrones", "Stranger Things", "The Crown", "The Office")
+            composable("home") {
+                HomeScreen(
+                    selectedTab = selectedTab,
+                    onTabSelected = { selectedTab = it }
                 )
             }
+            composable("search") {
+                SearchScreen()
+            }
+            composable("favorites") {
+                FavoritesScreen()
+            }
+            composable("profile") {
+                ProfileScreen()
+            }
         }
+    }
+}
+
+@Composable
+fun HomeScreen(selectedTab: String, onTabSelected: (String) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF0A3DA6))
+    ) {
+        TabSelector(selectedTab = selectedTab, onTabSelected = onTabSelected)
+
+        when (selectedTab) {
+            "Movies" -> MovieScreen(
+                movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic"),
+                inProgressMovies = listOf("Inception", "Avatar"),
+                notStartedMovies = listOf("Interstellar", "The Dark Knight", "Titanic")
+            )
+            "Shows" -> ShowScreen(
+                shows = listOf("Breaking Bad", "Game of Thrones", "Stranger Things", "The Crown", "The Office")
+            )
+        }
+    }
+}
+
+@Composable
+fun SearchScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Search Screen",
+            fontSize = 24.sp,
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+fun FavoritesScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Favorites Screen",
+            fontSize = 24.sp,
+            color = Color.Black
+        )
+    }
+}
+
+@Composable
+fun ProfileScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Profile Screen",
+            fontSize = 24.sp,
+            color = Color.Black
+        )
     }
 }
 
@@ -110,7 +195,6 @@ fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
         }
     }
 }
-
 @Composable
 fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
     Row(
@@ -233,16 +317,14 @@ fun MovieCard(movieName: String) {
             .clickable { showDialog = true },
         elevation = 8.dp
     ) {
-        Row(modifier = Modifier.fillMaxSize()) {
-
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
-                contentDescription = movieName,
-                modifier = Modifier
-                    .width(posterSize)
-                    .height(posterSize),
-                contentScale = ContentScale.Crop
-            )
+        Row(modifier = Modifier.fillMaxSize()) {Image(
+            painter = painterResource(id = R.drawable.ic_launcher_background),
+            contentDescription = movieName,
+            modifier = Modifier
+                .width(posterSize)
+                .height(posterSize),
+            contentScale = ContentScale.Crop
+        )
 
 
             Column(
