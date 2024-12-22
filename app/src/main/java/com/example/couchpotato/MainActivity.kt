@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material3.Text
@@ -109,17 +110,66 @@ fun HomeScreen(selectedTab: String, onTabSelected: (String) -> Unit) {
 
 @Composable
 fun SearchScreen() {
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center
+            .background(Color(0xFF0A3DA6))
+            .padding(8.dp)
     ) {
-        Text(
-            text = "Search Screen",
-            fontSize = 24.sp,
-            color = Color.Black
+
+        TextField(
+            value = "",
+            onValueChange = {  },
+            placeholder = {
+                Text(
+                    text = "Search",
+                    color = Color(0xFFA7C9DE),
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color.White),
+            singleLine = true,
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = Color.Black,
+                cursorColor = Color.Black,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                backgroundColor = Color.Transparent
+            )
         )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "How about these tags:",
+            fontSize = 16.sp,
+            color = Color.White,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            listOf("Action", "Drama", "Comedy", "Sci-Fi", "Horror", "Romance").forEach { tag ->
+                Text(
+                    text = tag,
+                    color = Color(0xFF0F9BF2),
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .clickable {
+                            // Когда-нибудт здесь будет переход к страницам жанра
+                        }
+                        .padding(8.dp)
+                )
+            }
+        }
     }
 }
 
@@ -170,31 +220,25 @@ fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
             "Favorites" to R.drawable.fav,
             "Profile" to R.drawable.profile
         )
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween, // Располагаем элементы на равном расстоянии
-            verticalAlignment = Alignment.CenterVertically // Выравнивание по центру по вертикали
-        ) {
-            items.forEachIndexed { index, item ->
-                BottomNavigationItem(
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = item.second),
-                            contentDescription = item.first,
-                            modifier = Modifier.size(29.dp),
-                            tint = if (selectedIndex == index) Color(0xFFF26E23) else Color(0xFF0F9BF2)
-                        )
-                    },
-                    selected = selectedIndex == index,
-                    onClick = { onItemSelected(index) },
-                    selectedContentColor = Color(0xFFF26E23),
-                    unselectedContentColor = Color(0xFF0F9BF2),
-                    label = {}
-                )
-            }
+
+        items.forEachIndexed { index, item ->
+            BottomNavigationItem(
+                selected = selectedIndex == index,
+                onClick = { onItemSelected(index) },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = item.second),
+                        contentDescription = item.first,
+                        modifier = Modifier.size(29.dp),
+                        tint = if (selectedIndex == index) Color(0xFFF26E23) else Color(0xFF0F9BF2) // Цвет иконки зависит от выбранной вкладки
+                    )
+                },
+                alwaysShowLabel = false
+            )
         }
     }
 }
+
 @Composable
 fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
     Row(
