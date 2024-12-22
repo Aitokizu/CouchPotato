@@ -74,31 +74,38 @@ fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
     BottomNavigation(
         modifier = Modifier
             .fillMaxWidth()
-            .height(56.dp) // Устанавливаем фиксированную высоту для панели
-            .background(Color.White), // Белый фон для панели
+            .height(70.dp)
+            .background(Color.White),
         backgroundColor = Color.White
     ) {
         val items = listOf(
-            "Home" to R.drawable.home_notactive,
-            "Search" to R.drawable.search_notactive,
-            "Favorites" to R.drawable.favorites_notactive,
-            "Profile" to R.drawable.profile_notactive
+            "Home" to R.drawable.c1,
+            "Search" to R.drawable.c2,
+            "Favorites" to R.drawable.c3,
+            "Profile" to R.drawable.c4
         )
-
-        items.forEachIndexed { index, item ->
-            BottomNavigationItem(
-                icon = {
-                    Icon(
-                        painter = painterResource(id = item.second),
-                        contentDescription = item.first
-                    )
-                },
-                label = { BasicText(item.first) },
-                selected = selectedIndex == index,
-                onClick = { onItemSelected(index) },
-                selectedContentColor = Color.Black, // Черный цвет для выбранной иконки
-                unselectedContentColor = Color.Gray // Серый цвет для невыбранной иконки
-            )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween, // Располагаем элементы на равном расстоянии
+            verticalAlignment = Alignment.CenterVertically // Выравнивание по центру по вертикали
+        ) {
+            items.forEachIndexed { index, item ->
+                BottomNavigationItem(
+                    icon = {
+                        Icon(
+                            painter = painterResource(id = item.second),
+                            contentDescription = item.first,
+                            modifier = Modifier.size(29.dp),
+                            tint = if (selectedIndex == index) Color(0xFFF26E23) else Color(0xFF0F9BF2)
+                        )
+                    },
+                    selected = selectedIndex == index,
+                    onClick = { onItemSelected(index) },
+                    selectedContentColor = Color(0xFFF26E23),
+                    unselectedContentColor = Color(0xFF0F9BF2),
+                    label = {}
+                )
+            }
         }
     }
 }
