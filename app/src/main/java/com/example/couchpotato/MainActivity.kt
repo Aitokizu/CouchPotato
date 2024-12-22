@@ -58,7 +58,9 @@ fun AppScreen() {
 
             when (selectedTab) {
                 "Movies" -> MovieScreen(
-                    movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic")
+                    movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic"),
+                    inProgressMovies = listOf("Inception", "Avatar"),
+                    notStartedMovies = listOf("Interstellar", "The Dark Knight", "Titanic")
                 )
                 "Shows" -> ShowScreen(
                     shows = listOf("Breaking Bad", "Game of Thrones", "Stranger Things", "The Crown", "The Office")
@@ -137,15 +139,59 @@ fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
 }
 
 @Composable
-fun MovieScreen(movies: List<String>) {
+fun MovieScreen(movies: List<String>, inProgressMovies: List<String>, notStartedMovies: List<String>) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(movies.size) { index ->
-            MovieCard(movieName = movies[index])
+        if (inProgressMovies.isNotEmpty()) {
+            item {
+                Text(
+                    text = "In progress",
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+            items(inProgressMovies.size) { index ->
+                MovieCard(movieName = inProgressMovies[index])
+            }
+        } else {
+            item {
+                Text(
+                    text = "wow...such emptiness!",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                )
+            }
+        }
+
+        if (notStartedMovies.isNotEmpty()) {
+            item {
+                Text(
+                    text = "Not started yet",
+                    fontSize = 20.sp,
+                    color = Color.White,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+            items(notStartedMovies.size) { index ->
+                MovieCard(movieName = notStartedMovies[index])
+            }
+        } else {
+            item {
+                Text(
+                    text = "wow...such emptiness!",
+                    fontSize = 16.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                )
+            }
         }
     }
 }
@@ -168,11 +214,23 @@ fun ShowScreen(shows: List<String>) {
 fun MovieCard(movieName: String) {
     val cardHeight = 100.dp
     val posterSize = cardHeight
+    var rating by remember { mutableStateOf(3) } // Изначальный рейтинг
+    var showDialog by remember { mutableStateOf(false) } // Состояние для отображения диалога
+
+    // oкно с подробной информацией
+    if (showDialog) {
+        MovieDetailDialog(
+            movieName = movieName,
+            onDismiss = { showDialog = false }
+        )
+    }
+
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(cardHeight),
+            .height(cardHeight)
+            .clickable { showDialog = true },
         elevation = 8.dp
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
@@ -194,6 +252,7 @@ fun MovieCard(movieName: String) {
                     .align(Alignment.Top)
                     .weight(1f)
             ) {
+
                 Text(
                     text = movieName,
                     fontSize = 20.sp,
@@ -201,7 +260,62 @@ fun MovieCard(movieName: String) {
                     textAlign = TextAlign.Start,
                     modifier = Modifier.fillMaxWidth()
                 )
+
+
+                Text(
+                    text = "S01 | E01 out of 18 episodes",
+                    fontSize = 14.sp,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 4.dp)
+                )
+
+
+                Row(
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start
+                ) {
+                    repeat(5) { index ->
+                        Icon(
+                            painter = painterResource(id = if (index < rating) R.drawable.star_full else R.drawable.star),
+                            contentDescription = "Star $index",
+                            modifier = Modifier
+                                .size(24.dp)
+                                .clickable { rating = index + 1 }, // Установка рейтинга по клику
+                            tint = Color(0xFFF13A28)
+                        )
+                    }
+                }
             }
         }
     }
+}
+@Composable
+fun MovieDetailDialog(movieName: String, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "Details for $movieName", fontSize = 20.sp, color = Color.Black)
+        },
+        text = {
+            Column {
+                Text(text = "Genre: Sci-Fi, Drama")
+                Text(text = "Director: Christopher Nolan")
+                Text(text = "Release Year: 2010")
+                Text(text = "Duration: 148 minutes")
+                Text(text = "Rating: 8.8/10")}
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Close", color = Color(0xFF0F9BF2))
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth(0.9f)
+            .padding(16.dp)
+    )
 }
