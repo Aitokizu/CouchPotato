@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -38,72 +39,59 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun AppScreen() {
     val navController = rememberNavController()
-    var selectedTab by remember { mutableStateOf("Movies") }
+    var selectedBottomTab by remember { mutableStateOf(0) } // Для нижней панели навигации
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        bottomBar = {
-            BottomNavigationBar(
-                selectedIndex = when (navController.currentBackStackEntry?.destination?.route) {
-                    "home" -> 0
-                    "search" -> 1
-                    "favorites" -> 2
-                    "profile" -> 3
-                    else -> 0
-                },
-                onItemSelected = { index ->
-                    when (index) {
-                        0 -> navController.navigate("home")
-                        1 -> navController.navigate("search")
-                        2 -> navController.navigate("favorites")
-                        3 -> navController.navigate("profile")
-                    }
-                }
-            )
+    NavHost(
+        navController = navController,
+        startDestination = "home"
+    ) {
+        composable("home") {
+            HomeScreen(navController = navController, selectedBottomTab, onTabChange = { selectedBottomTab = it })
         }
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = "home",
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable("home") {
-                HomeScreen(
-                    selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it }
-                )
-            }
-            composable("search") {
-                SearchScreen()
-            }
-            composable("favorites") {
-                FavoritesScreen()
-            }
-            composable("profile") {
-                ProfileScreen()
-            }
+        composable("details/{movieName}") { backStackEntry ->
+            val movieName = backStackEntry.arguments?.getString("movieName") ?: "Unknown"
+            MovieDetailsScreen(movieName = movieName, navController = navController)
         }
     }
 }
 
 @Composable
-fun HomeScreen(selectedTab: String, onTabSelected: (String) -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0A3DA6))
-    ) {
-        TabSelector(selectedTab = selectedTab, onTabSelected = onTabSelected)
+fun HomeScreen(navController: NavController, selectedBottomTab: Int, onTabChange: (Int) -> Unit) {
+    var selectedTab by remember { mutableStateOf("Movies") }
 
-        when (selectedTab) {
-            "Movies" -> MovieScreen(
-                movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic"),
-                inProgressMovies = listOf("Inception", "Avatar"),
-                notStartedMovies = listOf("Interstellar", "The Dark Knight", "Titanic")
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(
+                selectedIndex = selectedBottomTab,
+                onItemSelected = onTabChange
             )
-            "Shows" -> ShowScreen(
-                shows = listOf("Breaking Bad", "Game of Thrones", "Stranger Things", "The Crown", "The Office")
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF0A3DA6))
+                .padding(paddingValues)
+        ) {
+            TabSelector(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it }
             )
+
+            when (selectedTab) {
+                "Movies" -> MovieScreen(
+                    movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic"),
+                    onMovieClick = { movieName ->
+                        navController.navigate("details/$movieName")
+                    }
+                )
+                "Shows" -> ShowScreen(
+                    shows = listOf("Breaking Bad", "Game of Thrones", "Stranger Things", "The Crown", "The Office"),
+                    onShowClick = { showName ->
+                        navController.navigate("details/$showName")
+                    }
+                )
+            }
         }
     }
 }
@@ -267,151 +255,73 @@ fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
 }
 
 @Composable
-fun MovieScreen(movies: List<String>, inProgressMovies: List<String>, notStartedMovies: List<String>) {
+fun MovieScreen(movies: List<String>, onMovieClick: (String) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        if (inProgressMovies.isNotEmpty()) {
-            item {
-                Text(
-                    text = "In progress",
-                    fontSize = 20.sp,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-            items(inProgressMovies.size) { index ->
-                MovieCard(movieName = inProgressMovies[index])
-            }
-        } else {
-            item {
-                Text(
-                    text = "wow...such emptiness!",
-                    fontSize = 16.sp,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                )
-            }
-        }
-
-        if (notStartedMovies.isNotEmpty()) {
-            item {
-                Text(
-                    text = "Not started yet",
-                    fontSize = 20.sp,
-                    color = Color.White,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-            }
-            items(notStartedMovies.size) { index ->
-                MovieCard(movieName = notStartedMovies[index])
-            }
-        } else {
-            item {
-                Text(
-                    text = "wow...such emptiness!",
-                    fontSize = 16.sp,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
-                )
-            }
+        items(movies.size) { index ->
+            MovieCard(movieName = movies[index], onClick = { onMovieClick(movies[index]) })
         }
     }
 }
 
 @Composable
-fun ShowScreen(shows: List<String>) {
+fun ShowScreen(shows: List<String>, onShowClick: (String) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(shows.size) { index ->
-            MovieCard(movieName = shows[index])
+            MovieCard(movieName = shows[index], onClick = { onShowClick(shows[index]) })
         }
     }
 }
 
 @Composable
-fun MovieCard(movieName: String) {
+fun MovieCard(movieName: String, onClick: () -> Unit) {
     val cardHeight = 100.dp
-    val posterSize = cardHeight
-    var rating by remember { mutableStateOf(3) } // Изначальный рейтинг
-    var showDialog by remember { mutableStateOf(false) } // Состояние для отображения диалога
-
-    // oкно с подробной информацией
-    if (showDialog) {
-        MovieDetailDialog(
-            movieName = movieName,
-            onDismiss = { showDialog = false }
-        )
-    }
-
+    var rating by remember { mutableStateOf(3) }
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(cardHeight)
-            .clickable { showDialog = true },
+            .clickable { onClick() },
         elevation = 8.dp
     ) {
-        Row(modifier = Modifier.fillMaxSize()) {Image(
-            painter = painterResource(id = R.drawable.ic_launcher_background),
-            contentDescription = movieName,
-            modifier = Modifier
-                .width(posterSize)
-                .height(posterSize),
-            contentScale = ContentScale.Crop
-        )
-
-
+        Row(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_background),
+                contentDescription = movieName,
+                modifier = Modifier
+                    .width(cardHeight)
+                    .height(cardHeight),
+                contentScale = ContentScale.Crop
+            )
             Column(
                 modifier = Modifier
                     .padding(start = 16.dp)
                     .fillMaxHeight()
-                    .align(Alignment.Top)
                     .weight(1f)
             ) {
-
-                Text(
-                    text = movieName,
-                    fontSize = 20.sp,
-                    color = Color.Black,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-
+                Text(text = movieName, fontSize = 20.sp, color = Color.Black)
                 Text(
                     text = "S01 | E01 out of 18 episodes",
                     fontSize = 14.sp,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 4.dp)
+                    color = Color.Gray
                 )
-
-
                 Row(
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .fillMaxWidth(),
+                    modifier = Modifier.padding(top = 8.dp),
                     horizontalArrangement = Arrangement.Start
                 ) {
                     repeat(5) { index ->
                         Icon(
                             painter = painterResource(id = if (index < rating) R.drawable.star_full else R.drawable.star),
                             contentDescription = "Star $index",
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clickable { rating = index + 1 }, // Установка рейтинга по клику
+                            modifier = Modifier.size(24.dp),
                             tint = Color(0xFFF13A28)
                         )
                     }
@@ -420,28 +330,69 @@ fun MovieCard(movieName: String) {
         }
     }
 }
+
 @Composable
-fun MovieDetailDialog(movieName: String, onDismiss: () -> Unit) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = "Details for $movieName", fontSize = 20.sp, color = Color.Black)
-        },
-        text = {
-            Column {
-                Text(text = "Genre: Sci-Fi, Drama")
-                Text(text = "Director: Christopher Nolan")
-                Text(text = "Release Year: 2010")
-                Text(text = "Duration: 148 minutes")
-                Text(text = "Rating: 8.8/10")}
-        },
-        confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Close", color = Color(0xFF0F9BF2))
+fun MovieDetailsScreen(movieName: String, navController: NavController) {
+    val posterSize = 200.dp
+    var rating by remember { mutableStateOf(3) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { },
+                backgroundColor = Color(0xFF0A3DA6),
+                contentColor = Color.White,
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = "Back",
+                            modifier = Modifier.size(32.dp),
+                            tint = Color.White
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_background),
+                contentDescription = movieName,
+                modifier = Modifier
+                    .size(posterSize)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = movieName, fontSize = 24.sp, color = Color.Black)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.Center) {
+                repeat(5) { index ->
+                    Icon(
+                        painter = painterResource(id = if (index < rating) R.drawable.star_full else R.drawable.star),
+                        contentDescription = "Star $index",
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable { rating = index + 1 },
+                        tint = Color(0xFFF13A28)
+                    )
+                }
             }
-        },
-        modifier = Modifier
-            .fillMaxWidth(0.9f)
-            .padding(16.dp)
-    )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "Detailed description about $movieName.",
+                fontSize = 16.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Justify,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
 }
