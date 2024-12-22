@@ -3,6 +3,12 @@ package com.example.couchpotato
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,6 +32,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.google.accompanist.navigation.animation.AnimatedNavHost
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -36,19 +44,51 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppScreen() {
     val navController = rememberNavController()
-    var selectedBottomTab by remember { mutableStateOf(0) } // Для нижней панели навигации
+    var selectedBottomTab by remember { mutableStateOf(0) }
 
-    NavHost(
+    AnimatedNavHost(
         navController = navController,
-        startDestination = "home"
+        startDestination = "home",
+        enterTransition = {
+            slideInVertically(
+                initialOffsetY = { it }, // Экран появляется снизу
+                animationSpec = tween(500)
+            ) + fadeIn(animationSpec = tween(500)) // Добавлено затухание для плавности
+        },
+        exitTransition = {
+            slideOutVertically(
+                targetOffsetY = { -it }, // Экран уходит вверх
+                animationSpec = tween(500)
+            ) + fadeOut(animationSpec = tween(500))
+        },
+        popEnterTransition = {
+            slideInVertically(
+                initialOffsetY = { -it }, // Возвращение сверху вниз
+                animationSpec = tween(500)
+            ) + fadeIn(animationSpec = tween(500))
+        },
+        popExitTransition = {
+            slideOutVertically(
+                targetOffsetY = { it }, // Закрытие экрана вниз
+                animationSpec = tween(500)
+            ) + fadeOut(animationSpec = tween(500))
+        }
     ) {
         composable("home") {
-            HomeScreen(navController = navController, selectedBottomTab, onTabChange = { selectedBottomTab = it })
+            HomeScreen(
+                navController = navController,
+                selectedBottomTab = selectedBottomTab,
+                onTabChange = { selectedBottomTab = it }
+            )
         }
-        composable("details/{movieName}") { backStackEntry ->
+        composable(
+            route = "details/{movieName}",
+            arguments = listOf(navArgument("movieName") { defaultValue = "Unknown" })
+        ) { backStackEntry ->
             val movieName = backStackEntry.arguments?.getString("movieName") ?: "Unknown"
             MovieDetailsScreen(movieName = movieName, navController = navController)
         }

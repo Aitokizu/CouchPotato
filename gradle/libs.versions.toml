@@ -1,4 +1,5 @@
 [versions]
+accompanistNavigationAnimation = "0.32.0"
 accompanistSvg = "0.30.1"
 activityComposeVersion = "1.7.2"
 agp = "8.6.1"
@@ -18,6 +19,7 @@ uiToolingPreview = "1.7.6"
 navigationCompose = "2.8.5"
 
 [libraries]
+accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 accompanist-svg = { module = "com.google.accompanist:accompanist-svg", version.ref = "accompanistSvg" }
 androidx-activity-compose-v172 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }

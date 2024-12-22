@@ -67,7 +67,7 @@ dependencies {
     implementation (libs.androidx.lifecycle.runtime.ktx.v262)
     implementation (libs.androidx.activity.compose.v172 )
     implementation(libs.androidx.navigation.compose)
-
+    implementation (libs.accompanist.navigation.animation)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
