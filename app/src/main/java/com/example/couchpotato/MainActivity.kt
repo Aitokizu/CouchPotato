@@ -3,12 +3,12 @@ package com.example.couchpotato
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -16,12 +16,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import com.example.couchpotato.ui.theme.CouchPotatoTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,15 +73,15 @@ fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
     BottomNavigation(
         modifier = Modifier
             .fillMaxWidth()
-            .height(70.dp)
+            .height(75.dp)
             .background(Color.White),
         backgroundColor = Color.White
     ) {
         val items = listOf(
-            "Home" to R.drawable.c1,
-            "Search" to R.drawable.c2,
-            "Favorites" to R.drawable.c3,
-            "Profile" to R.drawable.c4
+            "Home" to R.drawable.home,
+            "Search" to R.drawable.search,
+            "Favorites" to R.drawable.fav,
+            "Profile" to R.drawable.profile
         )
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -129,7 +128,7 @@ fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
                 Text(
                     text = tab,
                     color = if (selectedTab == tab) Color.White else Color.White.copy(alpha = 0.7f),
-                    fontSize = 16.sp,
+                    fontSize = 30.sp,
                     textAlign = TextAlign.Center
                 )
             }
@@ -167,22 +166,42 @@ fun ShowScreen(shows: List<String>) {
 
 @Composable
 fun MovieCard(movieName: String) {
+    val cardHeight = 100.dp
+    val posterSize = cardHeight
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp),
+            .height(cardHeight),
         elevation = 8.dp
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text(
-                text = movieName,
-                fontSize = 20.sp,
-                color = Color.Black,
-                textAlign = TextAlign.Center
+        Row(modifier = Modifier.fillMaxSize()) {
+
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_background),
+                contentDescription = movieName,
+                modifier = Modifier
+                    .width(posterSize)
+                    .height(posterSize),
+                contentScale = ContentScale.Crop
             )
+
+
+            Column(
+                modifier = Modifier
+                    .padding(start = 16.dp)
+                    .fillMaxHeight()
+                    .align(Alignment.Top)
+                    .weight(1f)
+            ) {
+                Text(
+                    text = movieName,
+                    fontSize = 20.sp,
+                    color = Color.Black,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
 }
