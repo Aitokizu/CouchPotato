@@ -27,7 +27,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -55,25 +54,25 @@ fun AppScreen() {
         startDestination = "home",
         enterTransition = {
             slideInVertically(
-                initialOffsetY = { it },
+                initialOffsetY = { it }, // Экран появляется снизу
                 animationSpec = tween(500)
-            ) + fadeIn(animationSpec = tween(500))
+            ) + fadeIn(animationSpec = tween(500)) // Добавлено затухание для плавности
         },
         exitTransition = {
             slideOutVertically(
-                targetOffsetY = { -it },
+                targetOffsetY = { -it }, // Экран уходит вверх
                 animationSpec = tween(500)
             ) + fadeOut(animationSpec = tween(500))
         },
         popEnterTransition = {
             slideInVertically(
-                initialOffsetY = { -it },
+                initialOffsetY = { -it }, // Возвращение сверху вниз
                 animationSpec = tween(500)
             ) + fadeIn(animationSpec = tween(500))
         },
         popExitTransition = {
             slideOutVertically(
-                targetOffsetY = { it },
+                targetOffsetY = { it }, // Закрытие экрана вниз
                 animationSpec = tween(500)
             ) + fadeOut(animationSpec = tween(500))
         }
@@ -86,15 +85,14 @@ fun AppScreen() {
             )
         }
         composable(
-            route = "details/{movieName}?posterUrl={posterUrl}",
-            arguments = listOf(
-                navArgument("movieName") { defaultValue = "Unknown" },
-                navArgument("posterUrl") { defaultValue = "" }
-            )
+            route = "details/{movieName}",
+            arguments = listOf(navArgument("movieName") { defaultValue = "Unknown" })
         ) { backStackEntry ->
             val movieName = backStackEntry.arguments?.getString("movieName") ?: "Unknown"
-            val posterUrl = backStackEntry.arguments?.getString("posterUrl") ?: ""
-            MovieDetailsScreen(movieName = movieName, posterUrl = posterUrl, navController = navController)
+            val movie = movieList.find { it.name == movieName }  // Найдем объект фильма по имени
+            if (movie != null) {
+                MovieDetailsScreen(movie = movie, navController = navController)  // Передаем весь объект фильма
+            }
         }
     }
 }
@@ -130,7 +128,7 @@ fun HomeScreen(navController: NavController, selectedBottomTab: Int, onTabChange
                     }
                 )
                 "Shows" -> ShowScreen(
-                    shows = showList, // Используем список шоу
+                    shows = showList,
                     onShowClick = { show ->
                         navController.navigate("details/${show.name}")
                     }
@@ -210,9 +208,9 @@ fun MovieScreen(movies: List<Movie>, onMovieClick: (Movie) -> Unit) {
     ) {
         items(movies) { movie ->
             MovieCard(
-                movieName = movie.name,  // Передаем имя фильма
-                posterUrl = movie.posterUrl,  // Передаем URL постера
-                onClick = { onMovieClick(movie) }  // Передаем сам объект Movie при клике
+                movieName = movie.name,
+                posterUrl = movie.posterUrl,
+                onClick = { onMovieClick(movie) }
             )
         }
     }
@@ -228,9 +226,9 @@ fun ShowScreen(shows: List<Show>, onShowClick: (Show) -> Unit) {
     ) {
         items(shows) { show ->
             MovieCard(
-                movieName = show.name,  // Передаем имя сериала
-                posterUrl = show.posterUrl,  // Передаем URL постера
-                onClick = { onShowClick(show) }  // Передаем сам объект Show при клике
+                movieName = show.name,
+                posterUrl = show.posterUrl,
+                onClick = { onShowClick(show) }
             )
         }
     }
@@ -250,7 +248,6 @@ fun MovieCard(movieName: String, posterUrl: String, onClick: () -> Unit) {
         elevation = 8.dp
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-            // Подгрузка постера через Coil
             AsyncImage(
                 model = posterUrl,
                 contentDescription = movieName,
@@ -292,9 +289,9 @@ fun MovieCard(movieName: String, posterUrl: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun MovieDetailsScreen(movieName: String, posterUrl: String, navController: NavController) {
+fun MovieDetailsScreen(movie: Movie, navController: NavController) {
     val posterSize = 200.dp
-    var rating by remember { mutableStateOf(3) }
+    var rating by remember { mutableStateOf(movie.rating) }
 
     Scaffold(
         topBar = {
@@ -323,8 +320,8 @@ fun MovieDetailsScreen(movieName: String, posterUrl: String, navController: NavC
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AsyncImage(
-                model = posterUrl,
-                contentDescription = movieName,
+                model = movie.posterUrl,
+                contentDescription = movie.name,
                 modifier = Modifier
                     .size(posterSize)
                     .clip(RoundedCornerShape(10.dp)),
@@ -333,7 +330,7 @@ fun MovieDetailsScreen(movieName: String, posterUrl: String, navController: NavC
                 error = painterResource(R.drawable.ic_launcher_foreground)
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = movieName, fontSize = 24.sp, color = Color.Black)
+            Text(text = movie.name, fontSize = 24.sp, color = Color.Black)
             Spacer(modifier = Modifier.height(16.dp))
             Row(horizontalArrangement = Arrangement.Center) {
                 repeat(5) { index ->
@@ -349,7 +346,7 @@ fun MovieDetailsScreen(movieName: String, posterUrl: String, navController: NavC
             }
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "Detailed description about $movieName.",
+                text = movie.description,
                 fontSize = 16.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Justify,

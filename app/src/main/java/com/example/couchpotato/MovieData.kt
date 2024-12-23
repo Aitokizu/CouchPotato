@@ -11,19 +11,19 @@ val movieList = listOf(
     Movie(
         name = "Inception",
         description = "A skilled thief is given a chance to erase his past crimes by planting an idea into a CEO's mind.",
-        posterUrl = "https://upload.wikimedia.org/wikipedia/en/7/7d/Inception_ver3.jpg",
+        posterUrl = "https://m.media-amazon.com/images/M/MV5BMjAxMzY3NjcxNF5BMl5BanBnXkFtZTcwNTI5OTM0Mw@@._V1_FMjpg_UX1000_.jpg",
         rating = 4
     ),
     Movie(
-        name = "Avatar",
-        description = "A paraplegic Marine is sent to the moon Pandora on a unique mission.",
-        posterUrl = "https://upload.wikimedia.org/wikipedia/en/b/b0/Avatar-Teaser-Poster.jpg",
+        name = "Some movie",
+        description = "Something something",
+        posterUrl = "tipa bolvanka",
         rating = 5
     ),
     Movie(
-        name = "Interstellar",
-        description = "A team of explorers travel through a wormhole in space in an attempt to save humanity.",
-        posterUrl = "https://upload.wikimedia.org/wikipedia/en/b/bc/Interstellar_film_poster.jpg",
+        name = "Bee Movie",
+        description = "BEEES",
+        posterUrl = "https://raisingchildren.net.au/__data/assets/image/0035/49895/bee-movie.jpg",
         rating = 3
     )
 )
