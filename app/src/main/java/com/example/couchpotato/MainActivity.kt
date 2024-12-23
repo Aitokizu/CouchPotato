@@ -1,6 +1,5 @@
 package com.example.couchpotato
 
-import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,6 +13,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material3.Text
@@ -27,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -122,38 +123,18 @@ fun HomeScreen(navController: NavController, selectedBottomTab: Int, onTabChange
             )
 
             when (selectedTab) {
-                "Movies" -> {
-                    val movies = listOf(
-                        "Inception" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
-                        "Avatar" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
-                        "Interstellar" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
-                        "The Dark Knight" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
-                        "Titanic" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg"
-                    )
-                    MovieScreen(
-                        movies = movies,
-                        onMovieClick = { movieName, posterUrl ->
-                            navController.navigate("details/$movieName?posterUrl=${Uri.encode(posterUrl)}")
-                        }
-                    )
-                }
-                "Shows" -> {
-                    val shows = listOf(
-                        "Breaking Bad" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
-                        "Game of Thrones" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
-                        "Stranger Things" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
-                        "The Crown" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
-                        "The Office" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg"
-                    )
-                    ShowScreen(
-                        shows = shows,
-                        onShowClick = { showName, posterUrl ->
-                            navController.navigate("details/$showName?posterUrl=${Uri.encode(
-                                posterUrl.toString()
-                            )}")
-                        }
-                    )
-                }
+                "Movies" -> MovieScreen(
+                    movies = movieList,
+                    onMovieClick = { movie ->
+                        navController.navigate("details/${movie.name}")
+                    }
+                )
+                "Shows" -> ShowScreen(
+                    shows = showList, // Используем список шоу
+                    onShowClick = { show ->
+                        navController.navigate("details/${show.name}")
+                    }
+                )
             }
         }
     }
@@ -221,40 +202,40 @@ fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
 }
 
 @Composable
-fun MovieScreen(movies: List<Pair<String, String>>, onMovieClick: (String, String) -> Unit) {
+fun MovieScreen(movies: List<Movie>, onMovieClick: (Movie) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(movies.size) { index ->
-            val (name, posterUrl) = movies[index]
+        items(movies) { movie ->
             MovieCard(
-                movieName = name,
-                posterUrl = posterUrl,
-                onClick = { onMovieClick(name, posterUrl) }
+                movieName = movie.name,  // Передаем имя фильма
+                posterUrl = movie.posterUrl,  // Передаем URL постера
+                onClick = { onMovieClick(movie) }  // Передаем сам объект Movie при клике
             )
         }
     }
 }
 
+
 @Composable
-fun ShowScreen(shows: List<Pair<String, String>>, onShowClick: (String, String) -> Unit) {
+fun ShowScreen(shows: List<Show>, onShowClick: (Show) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        items(shows.size) { index ->
-            val (name, url) = shows[index]
+        items(shows) { show ->
             MovieCard(
-                movieName = name,
-                posterUrl = url,
-                onClick = { onShowClick(name, url) }
+                movieName = show.name,  // Передаем имя сериала
+                posterUrl = show.posterUrl,  // Передаем URL постера
+                onClick = { onShowClick(show) }  // Передаем сам объект Show при клике
             )
         }
     }
 }
+
 
 @Composable
 fun MovieCard(movieName: String, posterUrl: String, onClick: () -> Unit) {
