@@ -1,5 +1,6 @@
 package com.example.couchpotato
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,12 +10,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material3.Text
@@ -29,10 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import coil.compose.AsyncImage
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 
 class MainActivity : ComponentActivity() {
@@ -55,25 +54,25 @@ fun AppScreen() {
         startDestination = "home",
         enterTransition = {
             slideInVertically(
-                initialOffsetY = { it }, // Экран появляется снизу
+                initialOffsetY = { it },
                 animationSpec = tween(500)
-            ) + fadeIn(animationSpec = tween(500)) // Добавлено затухание для плавности
+            ) + fadeIn(animationSpec = tween(500))
         },
         exitTransition = {
             slideOutVertically(
-                targetOffsetY = { -it }, // Экран уходит вверх
+                targetOffsetY = { -it },
                 animationSpec = tween(500)
             ) + fadeOut(animationSpec = tween(500))
         },
         popEnterTransition = {
             slideInVertically(
-                initialOffsetY = { -it }, // Возвращение сверху вниз
+                initialOffsetY = { -it },
                 animationSpec = tween(500)
             ) + fadeIn(animationSpec = tween(500))
         },
         popExitTransition = {
             slideOutVertically(
-                targetOffsetY = { it }, // Закрытие экрана вниз
+                targetOffsetY = { it },
                 animationSpec = tween(500)
             ) + fadeOut(animationSpec = tween(500))
         }
@@ -86,11 +85,15 @@ fun AppScreen() {
             )
         }
         composable(
-            route = "details/{movieName}",
-            arguments = listOf(navArgument("movieName") { defaultValue = "Unknown" })
+            route = "details/{movieName}?posterUrl={posterUrl}",
+            arguments = listOf(
+                navArgument("movieName") { defaultValue = "Unknown" },
+                navArgument("posterUrl") { defaultValue = "" }
+            )
         ) { backStackEntry ->
             val movieName = backStackEntry.arguments?.getString("movieName") ?: "Unknown"
-            MovieDetailsScreen(movieName = movieName, navController = navController)
+            val posterUrl = backStackEntry.arguments?.getString("posterUrl") ?: ""
+            MovieDetailsScreen(movieName = movieName, posterUrl = posterUrl, navController = navController)
         }
     }
 }
@@ -119,117 +122,40 @@ fun HomeScreen(navController: NavController, selectedBottomTab: Int, onTabChange
             )
 
             when (selectedTab) {
-                "Movies" -> MovieScreen(
-                    movies = listOf("Inception", "Avatar", "Interstellar", "The Dark Knight", "Titanic"),
-                    onMovieClick = { movieName ->
-                        navController.navigate("details/$movieName")
-                    }
-                )
-                "Shows" -> ShowScreen(
-                    shows = listOf("Breaking Bad", "Game of Thrones", "Stranger Things", "The Crown", "The Office"),
-                    onShowClick = { showName ->
-                        navController.navigate("details/$showName")
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun SearchScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF0A3DA6))
-            .padding(8.dp)
-    ) {
-
-        TextField(
-            value = "",
-            onValueChange = {  },
-            placeholder = {
-                Text(
-                    text = "Search",
-                    color = Color(0xFFA7C9DE),
-                    fontSize = 16.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color.White),
-            singleLine = true,
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = Color.Black,
-                cursorColor = Color.Black,
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                backgroundColor = Color.Transparent
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "How about these tags:",
-            fontSize = 16.sp,
-            color = Color.White,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            listOf("Action", "Drama", "Comedy", "Sci-Fi", "Horror", "Romance").forEach { tag ->
-                Text(
-                    text = tag,
-                    color = Color(0xFF0F9BF2),
-                    fontSize = 14.sp,
-                    modifier = Modifier
-                        .clickable {
-                            // Когда-нибудт здесь будет переход к страницам жанра
+                "Movies" -> {
+                    val movies = listOf(
+                        "Inception" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
+                        "Avatar" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
+                        "Interstellar" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
+                        "The Dark Knight" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
+                        "Titanic" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg"
+                    )
+                    MovieScreen(
+                        movies = movies,
+                        onMovieClick = { movieName, posterUrl ->
+                            navController.navigate("details/$movieName?posterUrl=${Uri.encode(posterUrl)}")
                         }
-                        .padding(8.dp)
-                )
+                    )
+                }
+                "Shows" -> {
+                    val shows = listOf(
+                        "Breaking Bad" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
+                        "Game of Thrones" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
+                        "Stranger Things" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
+                        "The Crown" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg",
+                        "The Office" to "https://images.squarespace-cdn.com/content/52af2fc3e4b01acd4715b309/1529811758469-BZLL5YVN86M77NF669O2/moana-movie.jpg?format=1500w&content-type=image%2Fjpeg"
+                    )
+                    ShowScreen(
+                        shows = shows,
+                        onShowClick = { showName, posterUrl ->
+                            navController.navigate("details/$showName?posterUrl=${Uri.encode(
+                                posterUrl.toString()
+                            )}")
+                        }
+                    )
+                }
             }
         }
-    }
-}
-
-@Composable
-fun FavoritesScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Favorites Screen",
-            fontSize = 24.sp,
-            color = Color.Black
-        )
-    }
-}
-
-@Composable
-fun ProfileScreen() {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = "Profile Screen",
-            fontSize = 24.sp,
-            color = Color.Black
-        )
     }
 }
 
@@ -295,33 +221,43 @@ fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
 }
 
 @Composable
-fun MovieScreen(movies: List<String>, onMovieClick: (String) -> Unit) {
+fun MovieScreen(movies: List<Pair<String, String>>, onMovieClick: (String, String) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(movies.size) { index ->
-            MovieCard(movieName = movies[index], onClick = { onMovieClick(movies[index]) })
+            val (name, posterUrl) = movies[index]
+            MovieCard(
+                movieName = name,
+                posterUrl = posterUrl,
+                onClick = { onMovieClick(name, posterUrl) }
+            )
         }
     }
 }
 
 @Composable
-fun ShowScreen(shows: List<String>, onShowClick: (String) -> Unit) {
+fun ShowScreen(shows: List<Pair<String, String>>, onShowClick: (String, String) -> Unit) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         items(shows.size) { index ->
-            MovieCard(movieName = shows[index], onClick = { onShowClick(shows[index]) })
+            val (name, url) = shows[index]
+            MovieCard(
+                movieName = name,
+                posterUrl = url,
+                onClick = { onShowClick(name, url) }
+            )
         }
     }
 }
 
 @Composable
-fun MovieCard(movieName: String, onClick: () -> Unit) {
+fun MovieCard(movieName: String, posterUrl: String, onClick: () -> Unit) {
     val cardHeight = 100.dp
     var rating by remember { mutableStateOf(3) }
 
@@ -333,13 +269,16 @@ fun MovieCard(movieName: String, onClick: () -> Unit) {
         elevation = 8.dp
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
+            // Подгрузка постера через Coil
+            AsyncImage(
+                model = posterUrl,
                 contentDescription = movieName,
                 modifier = Modifier
                     .width(cardHeight)
                     .height(cardHeight),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.ic_launcher_foreground)
             )
             Column(
                 modifier = Modifier
@@ -372,7 +311,7 @@ fun MovieCard(movieName: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun MovieDetailsScreen(movieName: String, navController: NavController) {
+fun MovieDetailsScreen(movieName: String, posterUrl: String, navController: NavController) {
     val posterSize = 200.dp
     var rating by remember { mutableStateOf(3) }
 
@@ -402,13 +341,15 @@ fun MovieDetailsScreen(movieName: String, navController: NavController) {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
+            AsyncImage(
+                model = posterUrl,
                 contentDescription = movieName,
                 modifier = Modifier
                     .size(posterSize)
                     .clip(RoundedCornerShape(10.dp)),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.ic_launcher_foreground)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(text = movieName, fontSize = 24.sp, color = Color.Black)

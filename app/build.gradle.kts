@@ -69,6 +69,15 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation (libs.accompanist.navigation.animation)
 
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation (libs.converter.gson)
+
+    //coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.kt.coil.compose)
+
+    implementation (libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
