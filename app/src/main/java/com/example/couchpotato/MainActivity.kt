@@ -54,25 +54,25 @@ fun AppScreen() {
         startDestination = "home",
         enterTransition = {
             slideInVertically(
-                initialOffsetY = { it }, // Экран появляется снизу
+                initialOffsetY = { it },
                 animationSpec = tween(500)
-            ) + fadeIn(animationSpec = tween(500)) // Добавлено затухание для плавности
+            ) + fadeIn(animationSpec = tween(500))
         },
         exitTransition = {
             slideOutVertically(
-                targetOffsetY = { -it }, // Экран уходит вверх
+                targetOffsetY = { -it },
                 animationSpec = tween(500)
             ) + fadeOut(animationSpec = tween(500))
         },
         popEnterTransition = {
             slideInVertically(
-                initialOffsetY = { -it }, // Возвращение сверху вниз
+                initialOffsetY = { -it },
                 animationSpec = tween(500)
             ) + fadeIn(animationSpec = tween(500))
         },
         popExitTransition = {
             slideOutVertically(
-                targetOffsetY = { it }, // Закрытие экрана вниз
+                targetOffsetY = { it },
                 animationSpec = tween(500)
             ) + fadeOut(animationSpec = tween(500))
         }
@@ -89,9 +89,19 @@ fun AppScreen() {
             arguments = listOf(navArgument("movieName") { defaultValue = "Unknown" })
         ) { backStackEntry ->
             val movieName = backStackEntry.arguments?.getString("movieName") ?: "Unknown"
-            val movie = movieList.find { it.name == movieName }  // Найдем объект фильма по имени
+            val movie = movieList.find { it.name == movieName }
             if (movie != null) {
-                MovieDetailsScreen(movie = movie, navController = navController)  // Передаем весь объект фильма
+                MovieDetailsScreen(movie = movie, navController = navController)
+            }
+        }
+        composable(
+            route = "showDetails/{showName}",
+            arguments = listOf(navArgument("showName") { defaultValue = "Unknown" })
+        ) { backStackEntry ->
+            val showName = backStackEntry.arguments?.getString("showName") ?: "Unknown"
+            val show = showList.find { it.name == showName }
+            if (show != null) {
+                ShowDetailsScreen(show = show, navController = navController)
             }
         }
     }
@@ -130,7 +140,7 @@ fun HomeScreen(navController: NavController, selectedBottomTab: Int, onTabChange
                 "Shows" -> ShowScreen(
                     shows = showList,
                     onShowClick = { show ->
-                        navController.navigate("details/${show.name}")
+                        navController.navigate("showDetails/${show.name}")
                     }
                 )
             }
@@ -140,6 +150,13 @@ fun HomeScreen(navController: NavController, selectedBottomTab: Int, onTabChange
 
 @Composable
 fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
+    val navItems = listOf(
+        "Home" to R.drawable.home,
+        "Search" to R.drawable.search,
+        "Favorites" to R.drawable.fav,
+        "Profile" to R.drawable.profile
+    )
+
     BottomNavigation(
         modifier = Modifier
             .fillMaxWidth()
@@ -147,14 +164,7 @@ fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
             .background(Color.White),
         backgroundColor = Color.White
     ) {
-        val items = listOf(
-            "Home" to R.drawable.home,
-            "Search" to R.drawable.search,
-            "Favorites" to R.drawable.fav,
-            "Profile" to R.drawable.profile
-        )
-
-        items.forEachIndexed { index, item ->
+        navItems.forEachIndexed { index, item ->
             BottomNavigationItem(
                 selected = selectedIndex == index,
                 onClick = { onItemSelected(index) },
@@ -163,7 +173,7 @@ fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
                         painter = painterResource(id = item.second),
                         contentDescription = item.first,
                         modifier = Modifier.size(29.dp),
-                        tint = if (selectedIndex == index) Color(0xFFF26E23) else Color(0xFF0F9BF2) // Цвет иконки зависит от выбранной вкладки
+                        tint = if (selectedIndex == index) Color(0xFFF26E23) else Color(0xFF0F9BF2)
                     )
                 },
                 alwaysShowLabel = false
@@ -210,6 +220,7 @@ fun MovieScreen(movies: List<Movie>, onMovieClick: (Movie) -> Unit) {
             MovieCard(
                 movieName = movie.name,
                 posterUrl = movie.posterUrl,
+                rating = movie.rating,
                 onClick = { onMovieClick(movie) }
             )
         }
@@ -228,6 +239,7 @@ fun ShowScreen(shows: List<Show>, onShowClick: (Show) -> Unit) {
             MovieCard(
                 movieName = show.name,
                 posterUrl = show.posterUrl,
+                rating = show.rating,
                 onClick = { onShowClick(show) }
             )
         }
@@ -236,9 +248,8 @@ fun ShowScreen(shows: List<Show>, onShowClick: (Show) -> Unit) {
 
 
 @Composable
-fun MovieCard(movieName: String, posterUrl: String, onClick: () -> Unit) {
+fun MovieCard(movieName: String, posterUrl: String, rating: Int, onClick: () -> Unit) {
     val cardHeight = 100.dp
-    var rating by remember { mutableStateOf(3) }
 
     Card(
         modifier = Modifier
@@ -266,7 +277,7 @@ fun MovieCard(movieName: String, posterUrl: String, onClick: () -> Unit) {
             ) {
                 Text(text = movieName, fontSize = 20.sp, color = Color.Black)
                 Text(
-                    text = "S01 | E01 out of 18 episodes",
+                    text = "Rating: $rating/5",
                     fontSize = 14.sp,
                     color = Color.Gray
                 )
@@ -276,7 +287,9 @@ fun MovieCard(movieName: String, posterUrl: String, onClick: () -> Unit) {
                 ) {
                     repeat(5) { index ->
                         Icon(
-                            painter = painterResource(id = if (index < rating) R.drawable.star_full else R.drawable.star),
+                            painter = painterResource(
+                                id = if (index < rating) R.drawable.star_full else R.drawable.star
+                            ),
                             contentDescription = "Star $index",
                             modifier = Modifier.size(24.dp),
                             tint = Color(0xFFF13A28)
@@ -347,6 +360,74 @@ fun MovieDetailsScreen(movie: Movie, navController: NavController) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = movie.description,
+                fontSize = 16.sp,
+                color = Color.Gray,
+                textAlign = TextAlign.Justify,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun ShowDetailsScreen(show: Show, navController: NavController) {
+    val posterSize = 200.dp
+    var rating by remember { mutableStateOf(show.rating) }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { },
+                backgroundColor = Color(0xFF0A3DA6),
+                contentColor = Color.White,
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_arrow_back),
+                            contentDescription = "Back",
+                            modifier = Modifier.size(32.dp),
+                            tint = Color.White
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AsyncImage(
+                model = show.posterUrl,
+                contentDescription = show.name,
+                modifier = Modifier
+                    .size(posterSize)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_launcher_background),
+                error = painterResource(R.drawable.ic_launcher_foreground)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(text = show.name, fontSize = 24.sp, color = Color.Black)
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(horizontalArrangement = Arrangement.Center) {
+                repeat(5) { index ->
+                    Icon(
+                        painter = painterResource(id = if (index < rating) R.drawable.star_full else R.drawable.star),
+                        contentDescription = "Star $index",
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clickable { rating = index + 1 },
+                        tint = Color(0xFFF13A28)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = show.description,
                 fontSize = 16.sp,
                 color = Color.Gray,
                 textAlign = TextAlign.Justify,
