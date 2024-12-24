@@ -49,75 +49,125 @@ fun AppScreen() {
     val navController = rememberNavController()
     var selectedBottomTab by remember { mutableStateOf(0) }
 
-    AnimatedNavHost(
-        navController = navController,
-        startDestination = "home",
-        enterTransition = {
-            slideInVertically(
-                initialOffsetY = { it },
-                animationSpec = tween(500)
-            ) + fadeIn(animationSpec = tween(500))
-        },
-        exitTransition = {
-            slideOutVertically(
-                targetOffsetY = { -it },
-                animationSpec = tween(500)
-            ) + fadeOut(animationSpec = tween(500))
-        },
-        popEnterTransition = {
-            slideInVertically(
-                initialOffsetY = { -it },
-                animationSpec = tween(500)
-            ) + fadeIn(animationSpec = tween(500))
-        },
-        popExitTransition = {
-            slideOutVertically(
-                targetOffsetY = { it },
-                animationSpec = tween(500)
-            ) + fadeOut(animationSpec = tween(500))
-        }
-    ) {
-        composable("home") {
-            HomeScreen(
-                navController = navController,
-                selectedBottomTab = selectedBottomTab,
-                onTabChange = { selectedBottomTab = it }
+    Scaffold(
+        bottomBar = {
+            BottomNavigationBar(
+                selectedIndex = selectedBottomTab,
+                onItemSelected = { index ->
+                    selectedBottomTab = index
+                    when (index) {
+                        0 -> navController.navigate("home") {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        1 -> navController.navigate("search") {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        2 -> navController.navigate("favorites") {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                        3 -> navController.navigate("profile") {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
             )
         }
-        composable(
-            route = "details/{movieName}",
-            arguments = listOf(navArgument("movieName") { defaultValue = "Unknown" })
-        ) { backStackEntry ->
-            val movieName = backStackEntry.arguments?.getString("movieName") ?: "Unknown"
-            val movie = movieList.find { it.name == movieName }
-            if (movie != null) {
-                MovieDetailsScreen(movie = movie, navController = navController)
+    ) { innerPadding ->
+        AnimatedNavHost(
+            navController = navController,
+            startDestination = "home",
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(500)
+                ) + fadeIn(animationSpec = tween(500))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { -it },
+                    animationSpec = tween(500)
+                ) + fadeOut(animationSpec = tween(500))
+            },
+            popEnterTransition = {
+                slideInVertically(
+                    initialOffsetY = { -it },
+                    animationSpec = tween(500)
+                ) + fadeIn(animationSpec = tween(500))
+            },
+            popExitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(500)
+                ) + fadeOut(animationSpec = tween(500))
+            },
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable("home") {
+                HomeScreen(
+                    navController = navController,
+                    selectedBottomTab = selectedBottomTab,
+                    onTabChange = { selectedBottomTab = it }
+                )
             }
-        }
-        composable(
-            route = "showDetails/{showName}",
-            arguments = listOf(navArgument("showName") { defaultValue = "Unknown" })
-        ) { backStackEntry ->
-            val showName = backStackEntry.arguments?.getString("showName") ?: "Unknown"
-            val show = showList.find { it.name == showName }
-            if (show != null) {
-                ShowDetailsScreen(show = show, navController = navController)
+            composable("search") {
+                SearchScreen(
+                    navController = navController,
+                    selectedBottomTab = selectedBottomTab,
+                    onTabChange = { selectedBottomTab = it }
+                )
+            }
+            composable("favorites") {
+                FavoritesScreen(
+                    navController = navController,
+                    selectedBottomTab = selectedBottomTab,
+                    onTabChange = { selectedBottomTab = it }
+                )
+            }
+            composable("profile") {
+                ProfileScreen(
+                    navController = navController,
+                    selectedBottomTab = selectedBottomTab,
+                    onTabChange = { selectedBottomTab = it })
+            }
+            composable(
+                route = "details/{movieName}",
+                arguments = listOf(navArgument("movieName") { defaultValue = "Unknown" })
+            ) { backStackEntry ->
+                val movieName = backStackEntry.arguments?.getString("movieName") ?: "Unknown"
+                val movie = movieList.find { it.name == movieName }
+                if (movie != null) {
+                    MovieDetailsScreen(movie = movie, navController = navController)
+                }
+            }
+            composable(
+                route = "showDetails/{showName}",
+                arguments = listOf(navArgument("showName") { defaultValue = "Unknown" })
+            ) { backStackEntry ->
+                val showName = backStackEntry.arguments?.getString("showName") ?: "Unknown"
+                val show = showList.find { it.name == showName }
+                if (show != null) {
+                    ShowDetailsScreen(show = show, navController = navController)
+                }
             }
         }
     }
 }
 
+
+//экраны
 @Composable
 fun HomeScreen(navController: NavController, selectedBottomTab: Int, onTabChange: (Int) -> Unit) {
     var selectedTab by remember { mutableStateOf("Movies") }
 
     Scaffold(
-        bottomBar = {
-            BottomNavigationBar(
-                selectedIndex = selectedBottomTab,
-                onItemSelected = onTabChange
-            )
-        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -148,6 +198,68 @@ fun HomeScreen(navController: NavController, selectedBottomTab: Int, onTabChange
     }
 }
 
+@Composable
+fun SearchScreen(navController: NavController, selectedBottomTab: Int, onTabChange: (Int) -> Unit) {
+    Scaffold(
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFE3F2FD))
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Search Screen",
+                style = MaterialTheme.typography.h4,
+                color = Color(0xFF0A3DA6)
+            )
+        }
+    }
+}
+
+@Composable
+fun FavoritesScreen(navController: NavController, selectedBottomTab: Int, onTabChange: (Int) -> Unit) {
+    Scaffold(
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFFFF3E0))
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Favorites Screen",
+                style = MaterialTheme.typography.h4,
+                color = Color(0xFFF26E23)
+            )
+        }
+    }
+}
+
+@Composable
+fun ProfileScreen(navController: NavController, selectedBottomTab: Int, onTabChange: (Int) -> Unit) {
+    Scaffold(
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFE8F5E9))
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Profile Screen",
+                style = MaterialTheme.typography.h4,
+                color = Color(0xFF4CAF50)
+            )
+        }
+    }
+}
+
+
+//навигация
 @Composable
 fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
     val navItems = listOf(
@@ -182,6 +294,8 @@ fun BottomNavigationBar(selectedIndex: Int, onItemSelected: (Int) -> Unit) {
     }
 }
 
+
+//разделы на дом экране
 @Composable
 fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
     Row(
@@ -209,6 +323,8 @@ fun TabSelector(selectedTab: String, onTabSelected: (String) -> Unit) {
     }
 }
 
+
+//раздел с кино
 @Composable
 fun MovieScreen(movies: List<Movie>, onMovieClick: (Movie) -> Unit) {
     LazyColumn(
@@ -227,7 +343,7 @@ fun MovieScreen(movies: List<Movie>, onMovieClick: (Movie) -> Unit) {
     }
 }
 
-
+//раздел с шоу
 @Composable
 fun ShowScreen(shows: List<Show>, onShowClick: (Show) -> Unit) {
     LazyColumn(
@@ -247,6 +363,8 @@ fun ShowScreen(shows: List<Show>, onShowClick: (Show) -> Unit) {
 }
 
 
+
+//карточка
 @Composable
 fun MovieCard(movieName: String, posterUrl: String, rating: Int, onClick: () -> Unit) {
     val cardHeight = 100.dp
@@ -301,6 +419,8 @@ fun MovieCard(movieName: String, posterUrl: String, rating: Int, onClick: () -> 
     }
 }
 
+
+//доп инфа о фильме
 @Composable
 fun MovieDetailsScreen(movie: Movie, navController: NavController) {
     val posterSize = 200.dp
@@ -369,6 +489,7 @@ fun MovieDetailsScreen(movie: Movie, navController: NavController) {
     }
 }
 
+//доп инфа о шоу
 @Composable
 fun ShowDetailsScreen(show: Show, navController: NavController) {
     val posterSize = 200.dp
@@ -436,3 +557,5 @@ fun ShowDetailsScreen(show: Show, navController: NavController) {
         }
     }
 }
+
+
