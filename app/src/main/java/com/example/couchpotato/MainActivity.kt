@@ -1,5 +1,6 @@
 package com.example.couchpotato
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -23,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -425,6 +427,8 @@ fun MovieCard(movieName: String, posterUrl: String, rating: Int, onClick: () -> 
 fun MovieDetailsScreen(movie: Movie, navController: NavController) {
     val posterSize = 200.dp
     var rating by remember { mutableStateOf(movie.rating) }
+    val context = LocalContext.current
+
 
     Scaffold(
         topBar = {
@@ -437,6 +441,26 @@ fun MovieDetailsScreen(movie: Movie, navController: NavController) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_arrow_back),
                             contentDescription = "Back",
+                            modifier = Modifier.size(32.dp),
+                            tint = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        val shareText = "Check out this ${movie.name} with a rating of $rating stars"
+                        val intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, shareText)
+                            type = "text/plain"
+                        }
+                        context.startActivity(
+                            Intent.createChooser(intent, "Share movie details")
+                        )
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentDescription = "Share",
                             modifier = Modifier.size(32.dp),
                             tint = Color.White
                         )
@@ -472,7 +496,8 @@ fun MovieDetailsScreen(movie: Movie, navController: NavController) {
                         contentDescription = "Star $index",
                         modifier = Modifier
                             .size(32.dp)
-                            .clickable { rating = index + 1 },
+                            .clickable { rating = index + 1
+                                movie.rating = index + 1 },
                         tint = Color(0xFFF13A28)
                     )
                 }
@@ -541,7 +566,8 @@ fun ShowDetailsScreen(show: Show, navController: NavController) {
                         contentDescription = "Star $index",
                         modifier = Modifier
                             .size(32.dp)
-                            .clickable { rating = index + 1 },
+                            .clickable { rating = index + 1
+                                show.rating = index + 1 },
                         tint = Color(0xFFF13A28)
                     )
                 }

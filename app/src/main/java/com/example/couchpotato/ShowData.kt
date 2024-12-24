@@ -4,7 +4,7 @@ data class Show(
     val name: String,
     val description: String,
     val posterUrl: String,
-    val rating: Int
+    var rating: Int
 )
 
 val showList = listOf(
