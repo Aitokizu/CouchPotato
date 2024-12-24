@@ -448,7 +448,7 @@ fun MovieDetailsScreen(movie: Movie, navController: NavController) {
                 },
                 actions = {
                     IconButton(onClick = {
-                        val shareText = "Check out this ${movie.name} with a rating of $rating stars"
+                        val shareText = "Check out ${movie.name} with a rating of $rating stars"
                         val intent = Intent().apply {
                             action = Intent.ACTION_SEND
                             putExtra(Intent.EXTRA_TEXT, shareText)
@@ -459,7 +459,7 @@ fun MovieDetailsScreen(movie: Movie, navController: NavController) {
                         )
                     }) {
                         Icon(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            painter = painterResource(id = R.drawable.share),
                             contentDescription = "Share",
                             modifier = Modifier.size(32.dp),
                             tint = Color.White
@@ -519,6 +519,7 @@ fun MovieDetailsScreen(movie: Movie, navController: NavController) {
 fun ShowDetailsScreen(show: Show, navController: NavController) {
     val posterSize = 200.dp
     var rating by remember { mutableStateOf(show.rating) }
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
@@ -531,6 +532,26 @@ fun ShowDetailsScreen(show: Show, navController: NavController) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_arrow_back),
                             contentDescription = "Back",
+                            modifier = Modifier.size(32.dp),
+                            tint = Color.White
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        val shareText = "Check out ${show.name} with a rating of $rating stars"
+                        val intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, shareText)
+                            type = "text/plain"
+                        }
+                        context.startActivity(
+                            Intent.createChooser(intent, "Share movie details")
+                        )
+                    }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentDescription = "Share",
                             modifier = Modifier.size(32.dp),
                             tint = Color.White
                         )
